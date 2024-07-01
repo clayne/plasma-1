@@ -64,6 +64,7 @@ PLASMA_ATTR_Pragma_once
 
   /* prefer using intrinsics directly instead of winnt.h macro */
   /* http://software.intel.com/en-us/forums/topic/296168 */
+  /* https://learn.microsoft.com/en-us/cpp/intrinsics/arm-intrinsics */
   #include <intrin.h>
   #if defined(_M_AMD64) || defined(_M_IX86)
   #pragma intrinsic(_mm_pause)
@@ -73,6 +74,14 @@ PLASMA_ATTR_Pragma_once
   #elif defined(_M_IA64)
   #pragma intrinsic(__yield)
   #define plasma_spin_pause()  __yield()
+  #elif defined (_M_ARM) || defined(_M_ARMT)
+  #pragma intrinsic(__yield)
+  #define plasma_spin_pause() __yield()
+  #elif defined(_M_ARM64) || defined(_M_ARM64EC)
+  /* https://web.archive.org/web/20231004132033/https://bugs.java.com/bugdatabase/view_bug.do?bug_id=8258604 */
+  /* https://bugs.mysql.com/bug.php?id=100664 */
+  #pragma intrinsic(__isb)
+  #define plasma_spin_pause() __isb()
   #else
   #define plasma_spin_pause()  YieldProcessor()
   #endif
@@ -124,12 +133,16 @@ PLASMA_ATTR_Pragma_once
   #endif
 
 
-#elif defined(__arm__)
+#elif defined(__arm__) || defined(__thumb__)
 
   /* ARMv7 Architecture Reference Manual (for YIELD) */
   /* ARM Compiler toolchain Compiler Reference (for __yield() instrinsic) */
   #ifdef __CC_ARM
   #define plasma_spin_pause()  __yield()
+  #elif defined(__aarch64___)
+  /* https://web.archive.org/web/20231004132033/https://bugs.java.com/bugdatabase/view_bug.do?bug_id=8258604 */
+  /* https://bugs.mysql.com/bug.php?id=100664 */
+  #define plasma_spin_pause()  __asm__ __volatile__ ("isb")
   #else
   #define plasma_spin_pause()  __asm__ __volatile__ ("yield")
   #endif
