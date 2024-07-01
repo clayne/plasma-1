@@ -1,5 +1,8 @@
 plasma change log
 
+plasma v0.12 (2024.07.01)
+- plasma_spin: plasma_spin_pause using isb instead of yield on aarch64
+
 plasma v0.11 (2022.09.28)
 - plasma_attr: define __attribute_nonnull__() as function macro
 _ plasma_attr: define __attribute_fallthrough__
